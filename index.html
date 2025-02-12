@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: "Silkscreen";
+            src: url("font/slkscr.ttf") format('truetype');
+            font-weight: normal; /* Specify weight if applicable */
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Silkscreen';
+            src: url('font\slkscrb.ttf') format('truetype');
+            font-weight: bold; /* For bold variant */
+            font-style: normal;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ffccd5; /* Soft pink background */
+            font-family: "Silkscreen", monospace;
+            font-size: 22px;
+            overflow: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .content-box {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+            color: #333; /* Dark text for contrast */
+            padding: 40px;
+            border-radius: 20px; /* More rounded corners */
+            width: 80%;
+            max-width: 600px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            position: relative;
+            z-index: 20;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        .content-box:hover {
+            transform: translateY(-10px); /* Slight lift on hover */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+        }
+    
+        #envelope {
+            font-size: 100px;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+    
+        #envelope:hover {
+            transform: scale(1.1); /* Slightly enlarge on hover */
+        }
+    
+        #openMeText {
+            font-size: 24px;
+            margin-top: 10px;
+            color: #555; /* Slightly darker text */
+            transition: opacity 0.5s ease;
+        }
+    
+        #heartBox {
+            display: none;
+            position: absolute;
+            background-color: #d40909; /* Soft red */
+            color: white;
+            width: 200px;
+            height: 180px;
+            transform: rotate(-45deg);
+            z-index: 10;
+            border-radius: 20px; /* Rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        }
+    
+        #heartBox::before,
+        #heartBox::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 180px;
+            background-color: #d40909; /* Match heart box color */
+            border-radius: 50%;
+        }
+    
+        #heartBox::before {
+            top: -90px;
+            left: 0;
+        }
+    
+        #heartBox::after {
+            top: 0;
+            left: 90px;
+        }
+    
+        #heartBoxContent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            z-index: 15;
+        }
+    
+        #yesBtn, #noBtn {
+            padding: 12px 24px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 25px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-family: "Silkscreen", monospace;
+            outline: none;
+        }
+    
+        #yesBtn {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+    
+        #yesBtn:hover {
+            background-color: #45a049; /* Darker green */
+            transform: scale(1.05);
+        }
+    
+        #noBtn {
+            background-color: #f44336; /* Red */
+            color: white;
+        }
+    
+        #noBtn:hover {
+            background-color: #d32f2f; /* Darker red */
+            transform: scale(1.05);
+        }
+    
+        #message {
+            display: none;
+            font-size: 48px;
+            text-align: center;
+            z-index: 15;
+            color: #333; /* Dark text for contrast */
+        }
+    
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            opacity: 0.8;
+            border-radius: 50%;
+            animation: fall 3s linear infinite;
+        }
+    
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+    
+        #rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+    
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: lightblue;
+            top: -10px;
+            animation: rain-fall linear infinite;
+        }
+    
+        @keyframes rain-fall {
+            0% {
+                transform: translateY(-100%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content-box">
+        <div id="envelope">
+            ✉️
+            <div id="openMeText" style="font-size: 24px;">Hey Beautiful, OPEN ME!</div>
+        </div>
+
+        <div id="heartBox">
+            <div id="heartBoxContent">
+                Will you be my Galentine? 👉🏽👈🏽
+                <button id="yesBtn">Yes</button>
+                <button id="noBtn">No</button>
+            </div>
+        </div>
+
+        <div id="confetti">
+            <div id="confetti-container"></div>
+        </div>
+        <div id="rain"></div>
+        <audio id="applaudSound" src="audience-cheering-clapping-short-fascinatedsound-1-00-06.mp3" preload="auto"></audio>
+        <audio id="rainSound" src="rain.mp3" preload="auto"></audio>
+
+        <div id="message"></div>
+    </div>
+    
+
+    <script>
+        const envelope = document.getElementById('envelope');
+        const openMeText = document.getElementById('openMeText');
+        const heartBox = document.getElementById('heartBox');
+        const confetti = document.getElementById('confetti');
+        const rain = document.getElementById('rain');
+        const message = document.getElementById('message');
+
+        // Function to handle the first click on the envelope
+        function handleFirstClick() {
+            // Change the envelope emoji to the love letter emoji
+            envelope.innerHTML = '💌';
+            // Fade out the "OPEN ME" text
+            openMeText.style.opacity = '0';
+            setTimeout(() => {
+                openMeText.style.display = 'none'; // Hide "OPEN ME"
+                // Add the new text
+                const newText = document.createElement('div');
+                newText.style.fontSize = '24px';
+                newText.textContent = "Click on the heart to read!!";
+                envelope.appendChild(newText);
+                // Remove the first click event listener
+                envelope.removeEventListener('click', handleFirstClick);
+                // Add the second click event listener
+                envelope.addEventListener('click', handleSecondClick);
+            }, 500);
+        }
+
+        // Function to handle the second click on the envelope
+        function handleSecondClick() {
+            envelope.style.transition = 'transform 0.5s';
+            envelope.style.transform = 'translateY(100px)';
+            setTimeout(() => {
+                envelope.style.display = 'none';
+                heartBox.style.display = 'block';
+            }, 500);
+        }
+
+        // Add the first click event listener
+        envelope.addEventListener('click', handleFirstClick);
+
+        
+        function fullScreenConfetti() {
+            const duration = 5 * 1000; // Confetti lasts 5 seconds
+            const animationEnd = Date.now() + duration;
+            const colors = ['#ff0000', '#ff7300', '#ffeb00', '#47ff00', '#00ffea', '#5500ff', '#ff00c8'];
+            const applaud=document.getElementById('applaudSound');
+            applaud.currentTime = 0; // Restart sound if already played
+            applaud.volume = 0.5; // Adjust volume (0.0 to 1.0)
+            applaud.loop = true; // Keep looping while rain is active
+            applaud.play();
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            (function frame() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) return;
+
+                window.confetti({
+                    particleCount: 10,
+                    spread: 120,
+                    startVelocity: 30,
+                    ticks: 60,
+                    origin: { x: Math.random(), y: Math.random() - 0.2 }, // Spread across screen
+                    colors: colors
+                });
+
+                requestAnimationFrame(frame);
+                
+            })();
+            setTimeout(() => {
+                applaud.pause();
+            }, 5000);
+        }
+
+        // Trigger Confetti on "Yes" button click
+        document.getElementById('yesBtn').addEventListener('click', () => {
+            heartBox.style.display = 'none';
+            message.innerHTML = '💐<div style="text-align: center;">Thank you!</div>';
+            message.style.display = 'block';
+            
+            fullScreenConfetti(); // Start confetti animation
+        });
+/*
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+
+            for (let i = 0; i < 100; i++) {
+                let confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+
+                // Random position
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDuration = (Math.random() * 2 + 1) + 's';
+
+                confettiContainer.appendChild(confetti);
+
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+
+        document.getElementById('yesBtn').addEventListener('click', () => {
+            heartBox.style.display = 'none';
+            message.innerHTML = '💐<div style="text-align: center;">Thank you!</div>';
+            message.style.display = 'block';
+
+            // Call function to generate confetti
+            createConfetti();
+        });
+
+*/
+        
+        function startRain() {
+            const rainContainer = document.getElementById('rain');
+            const rainSound = document.getElementById('rainSound');
+
+            rainContainer.style.display = 'block';
+            rainSound.currentTime = 0; // Restart sound if already played
+            rainSound.volume = 0.5; // Adjust volume (0.0 to 1.0)
+            rainSound.loop = true; // Keep looping while rain is active
+            rainSound.play();
+
+            for (let i = 0; i < 100; i++) {
+                let drop = document.createElement('div');
+                drop.classList.add('rain-drop');
+                
+                drop.style.left = Math.random() * window.innerWidth + 'px';
+                drop.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+
+                rainContainer.appendChild(drop);
+
+                setTimeout(() => {
+                    drop.remove();
+                }, 12000);
+            }
+
+            setTimeout(() => {
+                rainContainer.style.display = 'none';
+                rainContainer.innerHTML = '';
+                rainSound.pause(); // Stop sound when rain stops
+            }, 15000);
+        }
+
+
+        // Handle "No" button click
+        document.getElementById('noBtn').addEventListener('click', () => {
+            heartBox.style.display = 'none';
+            message.innerHTML = '💔';
+            message.style.display = 'block';
+            rain.style.display = 'block';
+            startRain();
+        });
+    </script>
+
+</body>
+</html>
